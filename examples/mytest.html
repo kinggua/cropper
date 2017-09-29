@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Cropper</title>
+  <link rel="stylesheet" href="../dist/cropper.css">
+
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+  <script src="../docs/js/cropper.js"></script>
+  <style>
+    .container {
+      max-width: 640px;
+      margin: 20px auto;
+    }
+
+    img {
+      max-width: 100%;
+    }
+    /* Override Cropper's styles and to be a fucking circle */
+
+    .cropper-view-box,
+    .cropper-face {
+      border-radius: 50%;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Crop a round image</h1>
+    <h3>Image</h3>
+    <div>
+      <img id="image" src="../docs/images/picture.jpg">
+    </div>
+    <h3>Result</h3>
+    <button type="button" id="button">Crop</button>
+    <div id="result"></div>
+
+    <div id="showData" style="height: 200px;border: 1px solid #000;margin-top: 20px;">
+    </div>
+  </div>
+  <script>
+    var croppable = false;
+    $('#image').cropper({
+      /**
+       *aspectRatio:选取框外形 default NaN
+       *分子/分母 显示比例
+       */
+      aspectRatio: 2 / 2,
+      ready: function () {
+        croppable = true;
+      },
+      crop: function (e) {
+        $("#showData").html("<span style='margin-left:10px;'>x:" + e.x + "</span>");
+        $("#showData").append("<span style='margin-left:10px;'>y:" + e.y + "</span><br>");
+        $("#showData").append("<span style='margin-left:10px;'>width:" + e.width + "</span>");
+        $("#showData").append("<span style='margin-left:10px;'>height:" + e.height + "</span><br>");
+        $("#showData").append("<span style='margin-left:10px;'>rotate:" + e.rotate + "</span><br>");
+        $("#showData").append("<span style='margin-left:10px;'>scaleX:" + e.scaleX + "</span>");
+        $("#showData").append("<span style='margin-left:10px;'>scaleY:" + e.scaleY + "</span>");
+        //console.log(e);
+      }
+    });
+
+    $("#button").on('click', function () {
+      var croppedCanvas;
+      var roundedCanvas;
+
+      //防止未加载完就开始了
+      if (!croppable) {
+        alert("not finished yet!");
+        return;
+      }
+
+      // Crop
+      croppedCanvas = $('#image').cropper('getCroppedCanvas');
+
+      // Round
+      roundedCanvas = getRoundedCanvas(croppedCanvas);
+
+      // Show
+      $("#result").html('<img src="' + roundedCanvas.toDataURL() + '">');
+    });
+
+
+    function getRoundedCanvas(sourceCanvas) {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      var width = sourceCanvas.width;
+      var height = sourceCanvas.height;
+
+      canvas.width = width;
+      canvas.height = height;
+      context.beginPath();
+      context.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, 2 * Math.PI);
+      context.strokeStyle = 'rgba(0,0,0,0)';
+      context.stroke();
+      context.clip();
+      context.drawImage(sourceCanvas, 0, 0, width, height);
+
+      return canvas;
+    }
+
+  </script>
+</body>

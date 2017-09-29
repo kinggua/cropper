@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -15,14 +16,16 @@
     img {
       max-width: 100%;
     }
-
     /* Override Cropper's styles */
+
     .cropper-view-box,
     .cropper-face {
       border-radius: 50%;
     }
+
   </style>
 </head>
+
 <body>
 
   <div class="container">
@@ -90,6 +93,8 @@
         $result.html('<img src="' + roundedCanvas.toDataURL() + '">');
       });
     });
+
   </script>
 </body>
+
 </html>
