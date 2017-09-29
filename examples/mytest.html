@@ -12,7 +12,7 @@
   <script src="../docs/js/cropper.js"></script>
   <style>
     .container {
-      max-width: 640px;
+      max-width: 960px;
       margin: 20px auto;
     }
 
@@ -25,6 +25,32 @@
     .cropper-face {
       border-radius: 50%;
     }
+    /* Well,this is for many preview. */
+
+    .row,
+    .preview {
+      overflow: hidden;
+    }
+
+    .col {
+      float: left;
+    }
+
+    .col-6 {
+      width: 80%;
+    }
+
+    .col-3 {
+      width: 25%;
+    }
+
+    .col-2 {
+      width: 16.7%;
+    }
+
+    .col-1 {
+      width: 8.3%;
+    }
 
   </style>
 </head>
@@ -34,11 +60,25 @@
   <div class="container">
     <h1>Crop a round image</h1>
     <h3>Image</h3>
-    <div>
-      <img id="image" src="../docs/images/picture.jpg">
+    <div class="row">
+      <div class="col col-6">
+        <img data-scale="1,1" id="image" src="../docs/images/picture.jpg">
+      </div>
+      <div class="col col-3">
+        <div class="preview"></div>
+      </div>
+      <div class="col col-2">
+        <div class="preview"></div>
+      </div>
+      <div class="col col-1">
+        <div id="small" class="preview"></div>
+      </div>
     </div>
+
     <h3>Result</h3>
     <button type="button" id="button">Crop</button>
+    <button type="button" id="scaleX">scaleX</button>
+    <button type="button" id="scaleY">scaleY</button>
     <div id="result"></div>
 
     <div id="showData" style="height: 200px;border: 1px solid #000;margin-top: 20px;">
@@ -52,8 +92,29 @@
        *分子/分母 显示比例
        */
       aspectRatio: 2 / 2,
-      ready: function () {
+      //背景设置可拖动
+      dragMode: "move",
+      ready: function (e) {
         croppable = true;
+        //在此demo中没用
+        var $clone = $(this).clone().removeClass('cropper-hidden');
+
+        $clone.css({
+          display: 'block',
+          width: '100%',
+          minWidth: 0,
+          minHeight: 0,
+          maxWidth: 'none',
+          maxHeight: 'none'
+        });
+
+        $(".preview").css({
+          width: '100%',
+          overflow: 'hidden',
+          "border-radius": "50%" //设置预览
+        }).html($clone);
+
+
       },
       crop: function (e) {
         $("#showData").html("<span style='margin-left:10px;'>x:" + e.x + "</span>");
@@ -64,6 +125,25 @@
         $("#showData").append("<span style='margin-left:10px;'>scaleX:" + e.scaleX + "</span>");
         $("#showData").append("<span style='margin-left:10px;'>scaleY:" + e.scaleY + "</span>");
         //console.log(e);
+
+        //多预览
+
+        var imageData = $(this).cropper('getImageData');
+        var previewAspectRatio = e.width / e.height;
+
+        $(".preview").each(function () {
+          var $preview = $(this);
+          var previewWidth = $preview.width();
+          var previewHeight = previewWidth / previewAspectRatio;
+          var imageScaledRatio = e.width / previewWidth;
+
+          $preview.height(previewHeight).find('img').css({
+            width: imageData.naturalWidth / imageScaledRatio,
+            height: imageData.naturalHeight / imageScaledRatio,
+            marginLeft: -e.x / imageScaledRatio,
+            marginTop: -e.y / imageScaledRatio
+          });
+        });
       }
     });
 
@@ -76,17 +156,41 @@
         alert("not finished yet!");
         return;
       }
-
       // Crop
       croppedCanvas = $('#image').cropper('getCroppedCanvas');
-
       // Round
       roundedCanvas = getRoundedCanvas(croppedCanvas);
-
       // Show
       $("#result").html('<img src="' + roundedCanvas.toDataURL() + '">');
     });
 
+    $("#scaleX").on('click', function(){
+      imageScale('x');
+    })
+
+    $("#scaleY").on('click', function(){
+      imageScale('y')
+    })
+
+    function imageScale(posit) {
+      //防止未加载完就开始了
+      if (!croppable) {
+        alert("not finished yet!");
+        return;
+      }
+      var arr = $("#image").attr("data-scale").split(",");
+      var x = arr[0];
+      var y = arr[1];
+      
+      if(posit == "x"){
+        $("#image").cropper("scale",-x,y);
+        $("#image").attr("data-scale",""+(-x)+","+y+"");
+      }else{
+        $("#image").cropper("scale",x,-y);
+        $("#image").attr("data-scale",""+(x)+","+(-y)+"");
+      }
+      
+    }
 
     function getRoundedCanvas(sourceCanvas) {
       var canvas = document.createElement('canvas');
